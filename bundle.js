@@ -292,22 +292,51 @@
 	  this.isPaused = false;
 	};
 	
-	GameView.prototype.gameOver = function() {
-	  this.stop();
-	
-	  document.getElementById('menu-container').className='hide';
-	
-	  setTimeout(() => {
-	    this.ctx.clearRect(0, 0, this.DIM_X, this.DIM_Y);
-	    this.ctx.fillStyle = '#000';
-	    this.ctx.fillRect(0, 0, this.game.DIM_X, this.game.DIM_Y);
-	    let gameOverImage  = document.getElementById('game-over'),
-	        playGameButton = document.getElementById('play-game');
-	    playGameButton.className = '';
-	    gameOverImage.className = '';
-	  }, 600);
-	
-	};
+	// Adding the postMessage logic and congratulatory messages
+GameView.prototype.gameOver = function(didPlayerWin) {
+  this.stop();
+  
+  document.getElementById('menu-container').className='hide';
+  
+  if (didPlayerWin) {
+    console.log("You won! This is incorrect. Play again");
+    window.parent.postMessage('winner', '*');
+  } else {
+    console.log("This is the correct state of play, Awad");
+    window.parent.postMessage('gameOver', '*');
+  }
+
+  setTimeout(() => {
+    this.ctx.clearRect(0, 0, this.DIM_X, this.DIM_Y);
+    this.ctx.fillStyle = '#000';
+    this.ctx.fillRect(0, 0, this.game.DIM_X, this.game.DIM_Y);
+    let gameOverImage  = document.getElementById('game-over'),
+        playGameButton = document.getElementById('play-game');
+    playGameButton.className = '';
+    gameOverImage.className = '';
+  }, 600);
+};
+
+// Call this.gameOver() with appropriate boolean parameter based on the game state
+Game.prototype.lose = function() {
+  this.gameView.pause();
+  this.gameView.addLivesText(this.ctx);
+  this.gameView.gameOver(false);
+};
+
+Game.prototype.winRound = function() {
+  if (this.invaderShips.length === 0) {
+    setTimeout(() => {
+      if (this.invaderShips.length === 0) {
+        this.refreshShields();
+        this.level++;
+        this.defenderLives++;
+        this.addInvaderShips(this.level);
+      }
+    }, 1000);
+  }
+};
+
 	
 	GameView.KEY_BINDS = {
 	  'left': [-2, 0],
